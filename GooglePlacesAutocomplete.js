@@ -458,7 +458,10 @@ export default class GooglePlacesAutocomplete extends Component {
 
   _request = (text) => {
     this._abortRequests();
-    if (text.length >= this.props.minLength) {
+    // Intercept the request if we have an empty text field and a location prop
+    if (!text && this.props.location) {
+      this._requestNearby(...this.props.location);
+    } else if (text.length >= this.props.minLength) {
       const request = new XMLHttpRequest();
       this._requests.push(request);
       request.timeout = this.props.timeout;
@@ -676,7 +679,7 @@ export default class GooglePlacesAutocomplete extends Component {
       Math.random().toString(36).substr(2, 10)
     );
 
-    if ((this.state.text !== '' || this.props.predefinedPlaces.length || this.props.currentLocation === true) && this.state.listViewDisplayed === true) {
+    if ((this.state.dataSource.length > 0 || this.props.predefinedPlaces.length || this.props.currentLocation === true) && this.state.listViewDisplayed === true) {
       return (
         <FlatList
           scrollEnabled={!this.props.disableScroll}
@@ -784,7 +787,8 @@ GooglePlacesAutocomplete.propTypes = {
   suppressDefaultStyles: PropTypes.bool,
   numberOfLines: PropTypes.number,
   onSubmitEditing: PropTypes.func,
-  editable: PropTypes.bool
+  editable: PropTypes.bool,
+  location: PropTypes.arrayOf(PropTypes.number), // [lat, lng] to query around
 }
 GooglePlacesAutocomplete.defaultProps = {
   placeholder: 'Search',
@@ -813,7 +817,6 @@ GooglePlacesAutocomplete.defaultProps = {
   GooglePlacesDetailsQuery: {},
   GooglePlacesSearchQuery: {
     rankby: 'distance',
-    type: 'restaurant'
   },
   styles: {},
   textInputProps: {},
